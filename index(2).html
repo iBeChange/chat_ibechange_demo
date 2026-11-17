@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>iBeChange · Chat (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page: #DCE3F5;
+  --bg: #F0F4FD;
+  --surface: #FFFFFF;
+  --ink: #1B1F4B;
+  --ink-2: #3F4366;
+  --muted: #6B6F80;
+  --line: #E1E6F3;
+  --header: #3156E0;
+  --on-header: #FFFFFF;
+  --purple: #6A4BD6;
+  --purple-text: #6A4BD6;
+  --purple-tint: #EEE9FC;
+  --blue-tint: #E3EAFD;
+  --blue-text: #2B47B8;
+  --green-tint: #E2F4EC;
+  --green-text: #1E6B4A;
+  --chip-border: #D6DCEE;
+  --shadow: 0 4px 18px rgba(49, 70, 140, 0.08);
+  --nav-active: #E6ECFA;
+  --dashed: #C9BCF3;
+  --on-ink: #FFFFFF;
+  --error: #B42318;
+  font-family: Quicksand, "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0B0D1C; --bg: #12142A; --surface: #1D2040; --ink: #ECEEFF; --ink-2: #CBCFEA; --muted: #A3A8C7;
+    --line: #2C3058; --header: #2741B8; --purple: #7A5CE6; --purple-text: #B8A6F5; --purple-tint: #2D2659;
+    --blue-tint: #1F2B5C; --blue-text: #A9BCF7; --green-tint: #173A2D; --green-text: #8FD4B3;
+    --chip-border: #3A3F6E; --shadow: none; --nav-active: #262B55; --dashed: #4C3F8A; --on-ink: #12142A; --error: #F49B8F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0B0D1C; --bg: #12142A; --surface: #1D2040; --ink: #ECEEFF; --ink-2: #CBCFEA; --muted: #A3A8C7;
+  --line: #2C3058; --header: #2741B8; --purple: #7A5CE6; --purple-text: #B8A6F5; --purple-tint: #2D2659;
+  --blue-tint: #1F2B5C; --blue-text: #A9BCF7; --green-tint: #173A2D; --green-text: #8FD4B3;
+  --chip-border: #3A3F6E; --shadow: none; --nav-active: #262B55; --dashed: #4C3F8A; --on-ink: #12142A; --error: #F49B8F;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--page); color: var(--ink); -webkit-font-smoothing: antialiased; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.app { position: relative; max-width: 430px; height: 100%; margin: 0 auto; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+@media (min-width: 520px) {
+  body { padding: 24px 0; box-sizing: border-box; }
+  .app { border-radius: 32px; box-shadow: 0 20px 60px rgba(27, 31, 75, 0.2); }
+}
+
+/* Capçalera */
+.appbar { flex: none; display: flex; align-items: center; gap: 8px; height: 64px; padding: 0 12px; background: var(--header); color: var(--on-header); box-shadow: 0 2px 8px rgba(27, 31, 75, 0.18); z-index: 2; }
+.appbar h1 { flex: 1; margin: 0 0 0 8px; font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-btn { flex: none; width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: inherit; display: inline-flex; align-items: center; justify-content: center; }
+.bar-btn:hover { background: rgba(255, 255, 255, 0.14); }
+
+.view { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 28px; }
+.view.has-fab { padding-bottom: 96px; }
+
+/* Inici del xat */
+.banner { margin: 20px 16px 0; padding: 22px 20px; border-radius: 22px; background: linear-gradient(110deg, var(--surface) 30%, var(--purple-tint)); display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); }
+.banner p { flex: 1; margin: 0; font-size: 18px; line-height: 1.55; font-weight: 600; color: var(--ink-2); }
+.banner .art { flex: none; color: var(--purple-text); }
+.section-title { margin: 28px 20px 12px; font-size: 22px; font-weight: 700; color: var(--ink); }
+.chat-list { display: flex; flex-direction: column; gap: 12px; padding: 0 16px; }
+.chat-card { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 22px; background: var(--surface); box-shadow: var(--shadow); color: var(--ink); text-decoration: none; border: none; text-align: left; width: 100%; }
+.chat-card .ico { flex: none; width: 56px; height: 56px; border-radius: 28px; background: var(--purple-tint); color: var(--purple-text); display: flex; align-items: center; justify-content: center; }
+.chat-card .txt { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.chat-card .t { font-size: 18px; font-weight: 700; color: var(--purple-text); }
+.chat-card .s { font-size: 14px; line-height: 1.4; color: var(--muted); font-weight: 500; }
+.chat-card .meta { font-size: 13px; font-weight: 700; color: var(--blue-text); }
+.chat-card .chev { flex: none; color: var(--purple-text); }
+.soon { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 8px; background: var(--line); color: var(--muted); align-self: flex-start; }
+
+/* Xips */
+.filters { position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 14px 0 10px; display: flex; flex-direction: column; gap: 10px; }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 12px; scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent); }
+.chips::-webkit-scrollbar { display: none; }
+.chips.at-end { -webkit-mask-image: none; mask-image: none; }
+.chip { flex: none; height: 40px; padding: 0 12px; border-radius: 20px; border: 1px solid var(--chip-border); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-pressed="true"] { background: var(--purple); border-color: var(--purple); color: #fff; }
+.chip .n { font-size: 12px; opacity: 0.75; }
+.sortrow { display: flex; justify-content: flex-end; padding: 0 16px; }
+.select-wrap { position: relative; }
+.select-wrap select { height: 36px; padding: 0 30px 0 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 700; appearance: none; }
+.select-wrap svg { position: absolute; right: 9px; top: 10px; pointer-events: none; color: var(--muted); }
+
+/* Converses */
+.feed { padding: 4px 12px 0; display: flex; flex-direction: column; gap: 10px; }
+.card { background: var(--surface); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow); }
+.card.unanswered { border: 2px dashed var(--dashed); }
+.card.pinned { border: 1px solid var(--blue-tint); }
+.author { display: flex; align-items: center; gap: 10px; }
+.avatar { flex: none; width: 34px; height: 34px; border-radius: 17px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; background: var(--purple-tint); color: var(--purple-text); }
+.avatar.b { background: var(--blue-tint); color: var(--blue-text); }
+.avatar.g { background: var(--green-tint); color: var(--green-text); }
+.who { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 15px; font-weight: 700; }
+.when { font-size: 12px; color: var(--muted); font-weight: 600; }
+.badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
+.badge.equipo { background: var(--header); color: #fff; }
+.badge.mentor { background: var(--green-tint); color: var(--green-text); }
+.badge.tu { background: var(--line); color: var(--ink-2); }
+.card a.body-link { display: flex; flex-direction: column; gap: 6px; color: var(--ink); text-decoration: none; }
+.card h2 { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 700; }
+.card p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink-2); font-weight: 500; }
+.excerpt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tag { align-self: flex-start; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 10px; }
+.tag.quit { background: var(--purple-tint); color: var(--purple-text); }
+.tag.reduce { background: var(--blue-tint); color: var(--blue-text); }
+.actions { display: flex; align-items: center; gap: 8px; }
+.actions .spacer { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 18px; border: none; background: var(--bg); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.pill[aria-pressed="true"] { background: var(--purple-tint); color: var(--purple-text); }
+.pill[aria-pressed="true"] svg { fill: currentColor; }
+.icon-toggle { width: 44px; height: 36px; border: none; background: transparent; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; }
+.icon-toggle[aria-pressed="true"] { color: var(--purple-text); }
+.icon-toggle[aria-pressed="true"] svg { fill: currentColor; }
+.answer-btn { display: flex; align-items: center; justify-content: center; height: 44px; border-radius: 14px; border: none; background: var(--purple); color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; width: 100%; }
+.empty { margin: 16px; padding: 24px; border-radius: 20px; background: var(--surface); text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; box-shadow: var(--shadow); }
+.empty p { margin: 0; line-height: 1.5; color: var(--ink-2); font-weight: 600; }
+.fab { position: absolute; right: 16px; bottom: 92px; z-index: 5; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 20px; border-radius: 26px; border: none; background: var(--purple); color: #fff; font-size: 15px; font-weight: 700; box-shadow: 0 6px 18px rgba(106, 75, 214, 0.35); }
+
+/* Conversa oberta */
+.thread { padding: 16px 12px 0; display: flex; flex-direction: column; gap: 10px; }
+.thread .card h1 { margin: 0; font-size: 22px; line-height: 1.3; font-weight: 700; }
+.thread .card .full { color: var(--ink); font-size: 16px; line-height: 1.6; }
+.replies-title { margin: 10px 8px 0; font-size: 17px; font-weight: 700; }
+.reply { background: var(--surface); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); }
+.reply p { margin: 0; font-size: 15px; line-height: 1.55; font-weight: 500; }
+.composer { flex: none; border-top: 1px solid var(--line); background: var(--bg); padding: 10px 12px 12px; display: flex; gap: 8px; align-items: flex-end; }
+.composer textarea { flex: 1; min-height: 44px; max-height: 140px; padding: 11px 14px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); font-size: 15px; line-height: 1.4; resize: none; }
+.composer button { flex: none; height: 44px; padding: 0 16px; border-radius: 22px; border: none; background: var(--purple); color: #fff; font-weight: 700; }
+.composer button:disabled { background: var(--chip-border); color: var(--muted); cursor: not-allowed; }
+
+/* Formulari */
+.form { padding: 20px 16px; display: flex; flex-direction: column; gap: 20px; }
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field > label, .field > .lbl { font-size: 15px; font-weight: 700; color: var(--ink-2); }
+.field input[type="text"], .field textarea { padding: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); font-size: 16px; line-height: 1.5; font-weight: 600; }
+.field input[type="text"] { height: 52px; }
+.field textarea { resize: vertical; min-height: 130px; font-weight: 500; }
+.field .error { margin: 0; font-size: 13px; font-weight: 700; color: var(--error); }
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.option { min-height: 64px; padding: 12px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface); display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.option strong { font-size: 15px; }
+.option span { font-size: 12px; color: var(--muted); font-weight: 600; line-height: 1.35; }
+.option[aria-checked="true"] { border-color: var(--purple); background: var(--purple-tint); }
+.notice { display: flex; gap: 12px; padding: 14px; border-radius: 16px; background: var(--blue-tint); color: var(--blue-text); font-size: 14px; line-height: 1.5; font-weight: 600; }
+.form-foot { flex: none; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--bg); }
+.primary { width: 100%; height: 52px; border-radius: 16px; border: none; background: var(--purple); color: #fff; font-size: 16px; font-weight: 700; }
+
+/* Navegació inferior */
+.tabbar { flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--surface); border-top: 1px solid var(--line); }
+.tabbar button { height: 68px; border: none; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 700; line-height: 1.15; text-align: center; padding: 4px 2px; }
+.tabbar .t1 { color: #2B5BC4; } .tabbar .t2 { color: #1E7A73; } .tabbar .t3 { color: #6A4BD6; } .tabbar .t4 { color: #2B5BC4; }
+.tabbar button[aria-current="page"] { background: var(--nav-active); box-shadow: inset 0 3px 0 #3156E0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabbar .t1, :root:not([data-theme="light"]) .tabbar .t4 { color: #9DB5F5; } :root:not([data-theme="light"]) .tabbar .t2 { color: #7FD1C8; } :root:not([data-theme="light"]) .tabbar .t3 { color: #B8A6F5; } }
+:root[data-theme="dark"] .tabbar .t1, :root[data-theme="dark"] .tabbar .t4 { color: #9DB5F5; }
+:root[data-theme="dark"] .tabbar .t2 { color: #7FD1C8; }
+:root[data-theme="dark"] .tabbar .t3 { color: #B8A6F5; }
+
+.toast { position: absolute; left: 50%; bottom: 90px; transform: translate(-50%, 12px); opacity: 0; z-index: 10; background: var(--ink); color: var(--on-ink); padding: 12px 18px; border-radius: 14px; font-size: 14px; font-weight: 700; transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<noscript>This demo needs JavaScript.</noscript>
+<script>
+(function () {
+  "use strict";
+  /* Sample data: names, messages and numbers are made up for the demo. */
+  const H = 3600 * 1000, Dd = 24 * H, now = Date.now();
+
+  const CHATS = [
+    { id: "tabaco", name: "Smoking", desc: "Quit or cut down on smoking, with support from others.", icon: "smoke", ready: true },
+    { id: "alcohol", name: "Alcohol", desc: "Share how you’re cutting down on alcohol.", icon: "glass" },
+    { id: "emocional", name: "Emotional wellbeing", desc: "Stress, mood and looking after yourself.", icon: "heart" },
+    { id: "alimentacion", name: "Nutrition", desc: "Ideas and experiences for eating more healthily.", icon: "apple" },
+    { id: "actividad", name: "Physical activity", desc: "Move more every day, at your own pace.", icon: "run" }
+  ];
+  const TAGS = [
+    { id: "quit", name: "Quit smoking", hint: "I want to stop completely" },
+    { id: "reduce", name: "Reducing your consumption", hint: "I want to smoke less" }
+  ];
+  const PEOPLE = {
+    equipo: { name: "ICO Team", tone: "b", badge: "equipo" },
+    jordi: { name: "jordi_m", tone: "" },
+    elena: { name: "elena.r", tone: "g", badge: "mentor" },
+    marc: { name: "marc84", tone: "b" },
+    sara: { name: "sara_l", tone: "" },
+    pau: { name: "pau.g", tone: "g" },
+    nuria: { name: "nuria_v", tone: "b" },
+    toni: { name: "toni_s", tone: "" }
+  };
+  const SEED = [
+    { id: "t0", chat: "tabaco", tag: null, pinned: true, author: "equipo", at: now - 20 * Dd,
+      title: "Welcome to the Smoking chat", body: "This is a space to share experiences, whether you want to quit smoking or cut down. Pick the tag that matches your goal, and remember: nobody judges here.",
+      reactions: 31, replies: [] },
+    { id: "t1", chat: "tabaco", tag: "quit", author: "jordi", at: now - 4 * H,
+      title: "Day 12 smoke-free: cravings after meals",
+      body: "I’m doing quite well during the day, but after lunch the urge is huge. What do you do in that moment?",
+      reactions: 18, replies: [
+        { author: "elena", at: now - 3 * H, text: "Getting up from the table straight away and brushing my teeth helped me. Changing the after-meal routine makes a difference.", reactions: 9 },
+        { author: "sara", at: now - 2 * H, text: "I go for a short walk. Well done on those 12 days!", reactions: 5 },
+        { author: "marc", at: now - 50 * 60000, text: "Sugar-free gum and patience. The first weeks are the hardest, then it gets much easier.", reactions: 4 }
+      ] },
+    { id: "t2", chat: "tabaco", tag: "quit", author: "sara", at: now - 26 * H,
+      title: "How do you handle your morning coffee?",
+      body: "For me, coffee and a cigarette always went together. Now coffee tastes strange without smoking.",
+      reactions: 12, replies: [
+        { author: "pau", at: now - 22 * H, text: "I switched to tea for a month. It sounds silly, but it broke the link.", reactions: 6 },
+        { author: "elena", at: now - 20 * H, text: "I changed the place: coffee standing in the kitchen instead of on the balcony where I used to smoke.", reactions: 4 }
+      ] },
+    { id: "t3", chat: "tabaco", tag: "quit", author: "marc", at: now - 3 * Dd,
+      title: "I slipped after three weeks",
+      body: "It was at a dinner with friends. I feel awful because I was doing so well.",
+      reactions: 22, replies: [
+        { author: "elena", at: now - 3 * Dd + 2 * H, text: "A slip doesn’t erase those three weeks. Lots of people need several attempts. Think about what happened at that dinner and plan for next time.", reactions: 14 },
+        { author: "jordi", at: now - 2 * Dd, text: "Same thing happened on my first try. Start again tomorrow, we’re here for you.", reactions: 7 }
+      ] },
+    { id: "t4", chat: "tabaco", tag: "quit", author: "toni", at: now - 6 * H,
+      title: "Tomorrow is my first day without cigarettes",
+      body: "I’m nervous. Any tips for the first day?",
+      reactions: 6, replies: [] },
+    { id: "t5", chat: "tabaco", tag: "reduce", author: "nuria", at: now - 2 * Dd,
+      title: "From a pack to ten cigarettes a day",
+      body: "I’ve been cutting down for two weeks. Afternoons are harder, but I’m getting there.",
+      reactions: 15, replies: [
+        { author: "pau", at: now - 40 * H, text: "Great job! Delaying my first cigarette by an hour each week worked for me.", reactions: 8 },
+        { author: "sara", at: now - 30 * H, text: "That’s how I started, and in the end I decided to quit. Step by step.", reactions: 5 }
+      ] },
+    { id: "t6", chat: "tabaco", tag: "reduce", author: "pau", at: now - 5 * Dd,
+      title: "Tips for smoking less at work",
+      body: "Breaks with colleagues are my weak spot. How do you manage?",
+      reactions: 9, replies: [
+        { author: "nuria", at: now - 4 * Dd, text: "I still go on breaks, but with a coffee or water in hand. I stay with everyone, just without smoking.", reactions: 6 }
+      ] },
+    { id: "t7", chat: "tabaco", tag: "reduce", author: "jordi", at: now - 9 * H,
+      title: "Does tracking every cigarette help you?",
+      body: "I’ve started writing down when I smoke and why. Does anyone else do this?",
+      reactions: 4, replies: [] }
+  ];
+
+  /* Estado */
+  const KEY = "ibechange-chat-demo-v1";
+  function fresh() { return { threads: JSON.parse(JSON.stringify(SEED)), reacted: {}, saved: {} }; }
+  let state = (() => { try { const r = localStorage.getItem(KEY); if (r) return Object.assign(fresh(), JSON.parse(r)); } catch (e) {} return fresh(); })();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  const ui = { view: "home", id: null, filter: "all", sort: "recent", draft: null, focusReply: false };
+
+  /* Utilidades */
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const chat = (id) => CHATS.find((c) => c.id === id);
+  const tagOf = (id) => TAGS.find((t) => t.id === id);
+  const person = (k) => k === "me" ? { name: "you", tone: "", badge: "tu" } : PEOPLE[k];
+  function ago(ts) {
+    const m = Math.round((Date.now() - ts) / 60000);
+    if (m < 1) return "just now"; if (m < 60) return m + " min ago";
+    const h = Math.round(m / 60); if (h < 24) return h + " h ago";
+    const d = Math.round(h / 24); if (d === 1) return "yesterday"; if (d < 30) return d + " days ago"; return "over a month ago";
+  }
+
+  const P = {
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.5 5.4 3.5 8.5s-1 5.9-3.5 8.5c-2.5-2.6-3.5-5.4-3.5-8.5s1-5.9 3.5-8.5z"/>',
+    back: '<path d="M15 6l-6 6 6 6"/>',
+    chevron: '<path d="M9 6l6 6-6 6"/>',
+    down: '<path d="M6 9l6 6 6-6"/>',
+    smoke: '<rect x="3" y="13" width="14" height="4" rx="1"/><path d="M14 13v4M19 13v4M19 10c0-1.5-1-2-1-3.5S19 4 19 4M21.5 10c0-1.5-1-2-1-3.5"/>',
+    glass: '<path d="M7 4h10l-1.2 7.2A3.8 3.8 0 0 1 12 14.5a3.8 3.8 0 0 1-3.8-3.3z"/><path d="M12 14.5V20M8.5 20h7M7.5 8h9"/>',
+    heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/>',
+    apple: '<path d="M12 7.5c-1.5-1-5.5-1.2-6.5 2.5-1 3.8 1.5 9.5 4 9.5 1 0 1.5-.5 2.5-.5s1.5.5 2.5.5c2.5 0 5-5.7 4-9.5-1-3.7-5-3.5-6.5-2.5z"/><path d="M12 7.5c0-2 1-3.5 3-4"/>',
+    run: '<circle cx="14" cy="4.5" r="1.8"/><path d="M8 20l3-5 3 2v4M6 11l3-3h4l2 3 3 1M11 15l1-5"/>',
+    people: '<circle cx="9" cy="8" r="3"/><path d="M3.5 19.5c0-3.2 2.4-5 5.5-5s5.5 1.8 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.6c2.7 0 4.5 1.5 4.5 4"/>',
+    heartS: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/>',
+    comment: '<path d="M5 5h14v10H10l-5 4z"/>',
+    bookmark: '<path d="M7 4h10v16l-5-3.5L7 20z"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 16.5v-5M12 8h.01"/>',
+    target: '<circle cx="11" cy="13" r="7.5"/><circle cx="11" cy="13" r="4"/><circle cx="11" cy="13" r="0.8"/><path d="M11 13l8-8M16 5h3v3"/>',
+    journey: '<circle cx="5" cy="5" r="1.6"/><circle cx="5" cy="19" r="1.6"/><path d="M7 5h4M14 5h1M18 3l3 2-3 2zM5 7v1M7 12h10a3 3 0 0 1 0 6H7"/>',
+    book: '<path d="M3 5.5c3-1 6-1 9 1 3-2 6-2 9-1V19c-3-1-6-1-9 1-3-2-6-2-9-1z"/><path d="M12 6.5V20"/>',
+    chat: '<path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.3-1.1A8.5 8.5 0 1 0 12 3.5z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/>'
+  };
+  const icon = (n, s, w) => '<svg width="' + (s || 22) + '" height="' + (s || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.8) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + P[n] + "</svg>";
+
+  function authorHtml(k, at, extra) {
+    const p = person(k);
+    const badge = p.badge ? '<span class="badge ' + p.badge + '">' + { equipo: "Team", mentor: "Mentor", tu: "You" }[p.badge] + "</span>" : "";
+    return '<div class="author"><span class="avatar ' + p.tone + '" aria-hidden="true">' + esc(p.name.charAt(0).toUpperCase()) + '</span><span class="who"><span class="name">' + esc(p.name) + badge + '</span><span class="when">' + esc(extra || ago(at)) + "</span></span></div>";
+  }
+  function react(key, n) {
+    const on = !!state.reacted[key];
+    return '<button class="pill" data-act="react" data-key="' + key + '" aria-pressed="' + on + '">' + icon("heartS", 18) + "Helps me · " + (n + (on ? 1 : 0)) + "</button>";
+  }
+  function tagHtml(id) { const t = tagOf(id); return t ? '<span class="tag ' + id + '">' + t.name + "</span>" : ""; }
+  function card(t) {
+    const un = !t.pinned && t.replies.length === 0;
+    const n = t.replies.length;
+    const actions = un
+      ? '<button class="answer-btn" data-act="open" data-id="' + t.id + '" data-reply="1">No replies yet · Reply</button>'
+      : '<div class="actions">' + react(t.id, t.reactions) +
+        (t.pinned ? "" : '<button class="pill" data-act="open" data-id="' + t.id + '">' + icon("comment", 18) + n + (n === 1 ? " respuesta" : " respuestas") + "</button>") +
+        '<span class="spacer"></span><button class="icon-toggle" data-act="save" data-id="' + t.id + '" aria-pressed="' + !!state.saved[t.id] + '" aria-label="Save">' + icon("bookmark", 20) + "</button></div>";
+    return '<article class="card' + (un ? " unanswered" : "") + (t.pinned ? " pinned" : "") + '">' + authorHtml(t.author, t.at, t.pinned ? "Pinned conversation" : null) +
+      '<a class="body-link" href="#" data-act="open" data-id="' + t.id + '"><h2>' + esc(t.title) + '</h2><p class="excerpt">' + esc(t.body) + "</p></a>" + tagHtml(t.tag) + actions + "</article>";
+  }
+
+  /* Vistas */
+  function vHome() {
+    return {
+      title: "Chat", left: "menu", tabs: true,
+      html: '<div class="banner"><p>Connect, share and get support. You’re not alone on your journey!</p><span class="art">' + icon("people", 72, 1.3) + "</span></div>" +
+        '<h2 class="section-title">Your chats</h2><div class="chat-list">' +
+        CHATS.map((c) => {
+          const n = state.threads.filter((t) => t.chat === c.id).length;
+          return '<button class="chat-card" data-act="chat" data-id="' + c.id + '"><span class="ico">' + icon(c.icon, 28, 1.7) + '</span><span class="txt"><span class="t">' + c.name + '</span><span class="s">' + c.desc + "</span>" +
+            (c.ready ? '<span class="meta">' + n + " conversations</span>" : '<span class="soon">Coming soon</span>') + '</span><span class="chev">' + icon("chevron", 22, 2.2) + "</span></button>";
+        }).join("") + "</div>"
+    };
+  }
+  function vChat(id) {
+    const c = chat(id);
+    if (!c.ready) return { title: c.name, left: "back", back: "home", tabs: true,
+      html: '<div class="empty" style="margin-top:24px"><span style="color:var(--purple-text)">' + icon(c.icon, 40, 1.6) + "</span><p>The " + c.name + " chat will be developed later. In this demo you can try the Smoking chat.</p>" +
+        '<button class="answer-btn" style="width:auto;padding:0 18px" data-act="chat" data-id="tabaco">Go to the Smoking chat</button></div>' };
+    const all = state.threads.filter((t) => t.chat === id);
+    let list = ui.filter === "all" ? all : all.filter((t) => t.tag === ui.filter || t.pinned);
+    if (ui.sort === "none") list = list.filter((t) => !t.pinned && t.replies.length === 0);
+    const score = (t) => t.replies.length * 3 + t.reactions;
+    list = list.slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (ui.sort === "active" ? score(b) - score(a) : b.at - a.at));
+    const chips = [{ id: "all", name: "All" }].concat(TAGS);
+    return {
+      title: c.name, left: "back", back: "home", tabs: true,
+      fab: '<button class="fab" data-act="new">' + icon("plus", 20, 2.2) + "New conversation</button>",
+      html: '<div class="filters"><div class="chips" role="group" aria-label="Filter by goal">' +
+        chips.map((t) => '<button class="chip" data-act="filter" data-id="' + t.id + '" aria-pressed="' + (ui.filter === t.id) + '">' + t.name + "</button>").join("") + "</div>" +
+        '<div class="sortrow"><div class="select-wrap"><label class="sr" for="sort">Sort</label><select id="sort" data-sort>' +
+        [["recent", "Most recent"], ["active", "Most active"], ["none", "Unanswered"]].map((o) => '<option value="' + o[0] + '"' + (ui.sort === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("") +
+        "</select>" + icon("down", 16, 2) + "</div></div></div>" +
+        (list.length ? '<div class="feed">' + list.map(card).join("") + "</div>" : '<div class="empty"><p>No conversations with this filter.</p><button class="answer-btn" style="width:auto;padding:0 18px" data-act="new">Start one</button></div>')
+    };
+  }
+  function vThread(id) {
+    const t = state.threads.find((x) => x.id === id);
+    const n = t.replies.length;
+    return {
+      title: chat(t.chat).name, left: "back", back: "chat", composer: t.id,
+      html: '<div class="thread"><article class="card">' + authorHtml(t.author, t.at, t.pinned ? "Pinned conversation" : null) +
+        "<h1>" + esc(t.title) + '</h1><p class="full">' + esc(t.body) + "</p>" + tagHtml(t.tag) +
+        '<div class="actions">' + react(t.id, t.reactions) + '<span class="spacer"></span><button class="icon-toggle" data-act="save" data-id="' + t.id + '" aria-pressed="' + !!state.saved[t.id] + '" aria-label="Save">' + icon("bookmark", 20) + "</button></div></article>" +
+        '<h2 class="replies-title">' + (n ? n + (n === 1 ? " reply" : " replies") : "No replies yet") + "</h2>" +
+        (n ? t.replies.map((r, i) => '<article class="reply">' + authorHtml(r.author, r.at) + "<p>" + esc(r.text) + '</p><div class="actions">' + react(t.id + ":" + i, r.reactions) + "</div></article>").join("")
+          : '<div class="empty" style="margin:0"><p>Be the first to reply. Your experience could really help.</p></div>') + "</div>"
+    };
+  }
+  function vNew() {
+    if (!ui.draft) ui.draft = { title: "", body: "", tag: ui.filter === "all" ? null : ui.filter };
+    const d = ui.draft;
+    return {
+      title: "New conversation", left: "back", back: "chat",
+      html: '<form id="new-form" class="form" novalidate>' +
+        '<div class="field"><span class="lbl" id="goal-lbl">What’s your goal?</span><div class="options" role="radiogroup" aria-labelledby="goal-lbl">' +
+        TAGS.map((t) => '<button type="button" class="option" role="radio" aria-checked="' + (d.tag === t.id) + '" data-act="pick" data-id="' + t.id + '"><strong>' + t.name + "</strong><span>" + t.hint + "</span></button>").join("") +
+        '</div><p class="error" id="e-tag" hidden>Choose a goal so others can find your conversation.</p></div>' +
+        '<div class="field"><label for="n-title">Title</label><input type="text" id="n-title" data-draft="title" maxlength="120" placeholder="For example: How did you get through the first day?" value="' + esc(d.title) + '"><p class="error" id="e-title" hidden>Write a title.</p></div>' +
+        '<div class="field"><label for="n-body">Tell us more</label><textarea id="n-body" data-draft="body" rows="5" placeholder="Describe your situation or what you’d like to share">' + esc(d.body) + '</textarea><p class="error" id="e-body" hidden>Write your message.</p></div>' +
+        '<div class="notice">' + icon("info", 20) + "<span>Here we share experiences, not medical advice. If you have questions about stop-smoking treatments, talk to your healthcare professional.</span></div></form>",
+      footer: '<div class="form-foot"><button class="primary" type="submit" form="new-form">Post</button></div>'
+    };
+  }
+
+  /* Render */
+  const app = document.getElementById("app");
+  function render(keep) {
+    const prev = keep && $(".view") ? $(".view").scrollTop : 0;
+    const v = ui.view === "home" ? vHome() : ui.view === "chat" ? vChat(ui.id) : ui.view === "thread" ? vThread(ui.id) : vNew();
+    const left = v.left === "menu"
+      ? '<button class="bar-btn" data-act="toast" data-msg="The menu isn’t part of this demo" aria-label="Menu">' + icon("menu", 28, 2.4) + "</button>"
+      : '<button class="bar-btn" data-act="back" data-to="' + v.back + '" aria-label="Back">' + icon("back", 26, 2.4) + "</button>";
+    const tabs = [["t1", "target", "Missions"], ["t2", "journey", "Your iBeChange"], ["t3", "book", "Your Content"], ["t4", "chat", "Chat"]];
+    app.innerHTML =
+      '<header class="appbar">' + left + "<h1>" + esc(v.title) + '</h1><button class="bar-btn" data-act="toast" data-msg="Language switching isn’t included in the demo" aria-label="Language">' + icon("globe", 26, 1.8) + "</button></header>" +
+      '<main class="view' + (v.fab ? " has-fab" : "") + '">' + v.html + "</main>" + (v.footer || "") +
+      (v.composer ? '<form class="composer" data-reply-form="' + v.composer + '"><label class="sr" for="reply">Write a reply</label><textarea id="reply" rows="1" placeholder="Share your experience…"></textarea><button type="submit" disabled>Reply</button></form>' : "") +
+      (v.tabs ? '<nav class="tabbar" aria-label="Main navigation">' + tabs.map((t) => '<button class="' + t[0] + '"' + (t[0] === "t4" ? ' aria-current="page" data-act="home"' : ' data-act="toast" data-msg="' + t[2] + ' isn’t part of this demo"') + ">" + icon(t[1], 28, 1.6) + t[2] + "</button>").join("") + "</nav>" : "") +
+      (v.fab || "") + '<div class="toast" role="status" aria-live="polite"></div>';
+    $(".view").scrollTop = prev;
+    document.querySelectorAll(".chips").forEach(chipEnd);
+    if (ui.focusReply) { ui.focusReply = false; const r = $("#reply"); if (r) r.focus(); }
+  }
+  function go(view, id) { ui.view = view; if (id !== undefined) ui.id = id; render(); }
+  function chipEnd(el) { el.classList.toggle("at-end", el.scrollLeft + el.clientWidth >= el.scrollWidth - 4); }
+  document.addEventListener("scroll", (e) => { if (e.target.classList && e.target.classList.contains("chips")) chipEnd(e.target); }, true);
+  let tt;
+  function toast(m) { const t = $(".toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 2200); }
+
+  app.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-act]"); if (!el) return;
+    const a = el.dataset.act;
+    if (el.tagName === "A") e.preventDefault();
+    if (a === "toast") return toast(el.dataset.msg);
+    if (a === "home") return go("home");
+    if (a === "chat") { ui.filter = "all"; ui.sort = "recent"; return go("chat", el.dataset.id); }
+    if (a === "back") { if (el.dataset.to === "chat") { ui.draft = null; const t = state.threads.find((x) => x.id === ui.id); go("chat", t ? t.chat : "tabaco"); } else go("home"); return; }
+    if (a === "filter") { ui.filter = el.dataset.id; return render(true); }
+    if (a === "open") { ui.focusReply = !!el.dataset.reply; return go("thread", el.dataset.id); }
+    if (a === "react") { state.reacted[el.dataset.key] = !state.reacted[el.dataset.key]; save(); return render(true); }
+    if (a === "save") { const id = el.dataset.id; state.saved[id] = !state.saved[id]; save(); render(true); return toast(state.saved[id] ? "Conversation saved" : "Removed from saved"); }
+    if (a === "new") { ui.draft = null; ui.id = "tabaco"; return go("new"); }
+    if (a === "pick") {
+      ui.draft.tag = el.dataset.id;
+      document.querySelectorAll(".option").forEach((o) => o.setAttribute("aria-checked", o.dataset.id === el.dataset.id));
+      $("#e-tag").hidden = true;
+    }
+  });
+  app.addEventListener("input", (e) => {
+    const el = e.target;
+    if (el.dataset.draft) { ui.draft[el.dataset.draft] = el.value; const er = $("#e-" + el.dataset.draft); if (er && el.value.trim()) er.hidden = true; }
+    if (el.id === "reply") { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 140) + "px"; el.form.querySelector("button").disabled = !el.value.trim(); }
+  });
+  app.addEventListener("change", (e) => { if (e.target.hasAttribute("data-sort")) { ui.sort = e.target.value; render(true); } });
+  app.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const f = e.target;
+    if (f.dataset.replyForm) {
+      const ta = f.querySelector("textarea"), text = ta.value.trim(); if (!text) return;
+      const t = state.threads.find((x) => x.id === f.dataset.replyForm);
+      t.replies.push({ author: "me", at: Date.now(), text: text, reactions: 0 }); save(); render(true);
+      const v = $(".view"); v.scrollTop = v.scrollHeight; return toast("Reply posted");
+    }
+    if (f.id === "new-form") {
+      const d = ui.draft, err = { tag: !d.tag, title: !d.title.trim(), body: !d.body.trim() };
+      Object.keys(err).forEach((k) => { $("#e-" + k).hidden = !err[k]; });
+      if (err.tag || err.title || err.body) { const first = err.tag ? ".option" : err.title ? "#n-title" : "#n-body"; $(first).focus(); return; }
+      const t = { id: "u" + Date.now(), chat: "tabaco", tag: d.tag, author: "me", at: Date.now(), title: d.title.trim(), body: d.body.trim(), reactions: 0, replies: [] };
+      state.threads.unshift(t); save(); ui.draft = null; go("thread", t.id); toast("Conversation posted");
+    }
+  });
+  render();
+})();
+</script>
+</body>
+</html>
